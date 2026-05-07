@@ -54,9 +54,30 @@ class Libro(models.Model):
     # El ISBN es un identificador único para cada libro, lo que permite distinguir entre diferentes ediciones y versiones. Si no fuera único,
     # podría haber confusión al identificar y catalogar los libros en la biblioteca.
 
-    
 
-    def prestamos_activos(self) -> int:
+class Prestamo(models.Model):
+    """
+    Registro de un préstamo de libro a un usuario.
+    Si fecha_devolucion es NULL → el préstamo está activo.
+    """
+    libro = models.ForeignKey(Libro, on_delete=models.CASCADE)
+    nombre_prestatario = models.CharField(max_length=120)
+    fecha_prestamo = models.DateField(default=timezone.now)
+    fecha_devolucion = models.DateField(null=True, blank=True)
+
+    # Preguntas guía:
+    # ¿Por qué usamos CASCADE aquí y PROTECT en Libro→Autor?
+    # En Prestamo, usamos CASCADE para que si un libro es eliminado, todos los préstamos asociados a ese libro también se eliminen automáticamente,
+    # lo que mantiene la integridad de los datos. En cambio, en Libro→Autor, usamos PROTECT para evitar que se elimine un autor si tiene libros asociados, 
+    # ya que perderíamos información valiosa sobre esos libros.
+
+
+    # ¿Qué valor por defecto tendría sentido para fecha_prestamo?
+    # Tip: podés usar default=timezone.now si querés fecha automática,
+    #      o dejarlo sin default para que el test lo defina explícitamente.
+
+    
+def prestamos_activos(self) -> int:
         """
         Retorna la cantidad de préstamos activos (fecha_devolucion IS NULL).
 
@@ -79,24 +100,3 @@ class Libro(models.Model):
         """Retorna True si hay al menos una copia disponible."""
         # TODO: implementar
         raise NotImplementedError
-
-
-class Prestamo(models.Model):
-    """
-    Registro de un préstamo de libro a un usuario.
-    Si fecha_devolucion es NULL → el préstamo está activo.
-    """
-
-    # TODO: implementar los campos:
-    # libro              → ForeignKey(Libro, on_delete=models.CASCADE)
-    # nombre_prestatario → CharField
-    # fecha_prestamo     → DateField
-    # fecha_devolucion   → DateField (null=True, blank=True)
-    #
-    # Preguntas guía:
-    # ¿Por qué usamos CASCADE aquí y PROTECT en Libro→Autor?
-    # ¿Qué valor por defecto tendría sentido para fecha_prestamo?
-    # Tip: podés usar default=timezone.now si querés fecha automática,
-    #      o dejarlo sin default para que el test lo defina explícitamente.
-
-    pass
