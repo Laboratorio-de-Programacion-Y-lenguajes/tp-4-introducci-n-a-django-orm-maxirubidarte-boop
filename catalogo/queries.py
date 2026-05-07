@@ -20,10 +20,9 @@ def libros_por_categoria(nombre_categoria: str):
         for libro in libros:
             print(libro.titulo)
     """
-    # TODO: implementar la consulta ORM
-    # Pista: usá filter con la relación M2M
-    #   Libro.objects.filter(categorias__nombre=nombre_categoria)
-    raise NotImplementedError
+    # Filtramos los libros buscando en el campo 'nombre' del modelo 'Categoria' relacionado
+    return Libro.objects.filter(categorias__nombre=nombre_categoria)
+   
 
 
 def autores_con_mas_de_n_libros(n: int):
