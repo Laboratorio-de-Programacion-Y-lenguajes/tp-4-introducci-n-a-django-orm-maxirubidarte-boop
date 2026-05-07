@@ -48,8 +48,13 @@ def libros_sin_disponibilidad():
             activos=Count("prestamo", filter=Q(prestamo__fecha_devolucion__isnull=True))
         ).filter(activos=models.F("cantidad_total"))
     """
-    # TODO: implementar con annotate + F expression + filter
-    raise NotImplementedError
+
+    # 1. Contamos los préstamos que no tienen fecha de devolución (están activos).
+    # 2. F() para comparar ese conteo contra la columna 'cantidad_total'.
+    return Libro.objects.annotate(
+        activos=Count("prestamo", filter=Q(prestamo__fecha_devolucion__isnull=True))
+    ).filter(activos=F("cantidad_total"))
+
 
 
 def top_n_libros_mas_prestados(n: int):
