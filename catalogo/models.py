@@ -24,14 +24,10 @@ class Categoria(models.Model):
     Categoría temática de libros.
     Ejemplos: 'fantasía', 'ciencia ficción', 'historia'.
     """
+    nombre = models.CharField(max_length=120, unique=True)
 
-    # TODO: implementar el campo nombre (unique=True)
-
-    pass
-
-    # def __str__(self) -> str:
-    #     return self.nombre
-
+    def __str__(self):
+        return self.nombre
 
 class Libro(models.Model):
     """
