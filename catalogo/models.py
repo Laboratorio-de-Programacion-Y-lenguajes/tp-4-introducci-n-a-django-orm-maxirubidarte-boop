@@ -9,14 +9,12 @@ class Autor(models.Model):
     Representa a un autor/a.
     Requerido: nombre, email único, biografía opcional.
     """
-    #definimos nombre,biografia y email (unico)
     nombre = models.CharField(max_length=120)
     email = models.EmailField(unique=True)
     biografia = models.TextField(blank=True)
 
     def __str__(self):
         return self.nombre
-
 
 
 class Categoria(models.Model):
@@ -28,14 +26,13 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nombre
-    
+
 
 class Libro(models.Model):
     """
     Libro del catálogo de la biblioteca.
     Tiene relación N:1 con Autor y N:M con Categoria.
     """
-
     titulo = models.CharField(max_length=200)
     isbn = models.CharField(max_length=20, unique=True)
     fecha_publicacion = models.DateField()
@@ -43,16 +40,27 @@ class Libro(models.Model):
     autor = models.ForeignKey(Autor, on_delete=models.PROTECT)
     categorias = models.ManyToManyField(Categoria)
 
-    
-    # Preguntas guía:
+    def __str__(self):
+        return self.titulo
 
-    # ¿Qué pasa si eliminás un autor que tiene libros? (PROTECT vs CASCADE)
-    # PROTECT evita que se elimine un autor si tiene libros asociados, mientras que CASCADE eliminaría todos los libros relacionados automáticamente.
-    #  En este caso, PROTECT es más adecuado para preservar la integridad de los datos y evitar la pérdida accidental de información sobre los libros.
+    # --- MÉTODOS DE LÓGICA DE NEGOCIO ---
 
-    # ¿Por qué isbn debe ser único?
-    # El ISBN es un identificador único para cada libro, lo que permite distinguir entre diferentes ediciones y versiones. Si no fuera único,
-    # podría haber confusión al identificar y catalogar los libros en la biblioteca.
+    def prestamos_activos(self) -> int:
+        """
+        Retorna la cantidad de préstamos activos (fecha_devolucion IS NULL).
+        """
+        return self.prestamo_set.filter(fecha_devolucion__isnull=True).count()
+
+    def disponibles(self) -> int:
+        """
+        Retorna cuántas copias están disponibles:
+        cantidad_total - prestamos_activos()
+        """
+        return self.cantidad_total - self.prestamos_activos()
+
+    def tiene_disponibles(self) -> bool:
+        """Retorna True si hay al menos una copia disponible."""
+        return self.disponibles() > 0
 
 
 class Prestamo(models.Model):
@@ -65,38 +73,10 @@ class Prestamo(models.Model):
     fecha_prestamo = models.DateField(default=timezone.now)
     fecha_devolucion = models.DateField(null=True, blank=True)
 
-    # Preguntas guía:
+    def __str__(self):
+        return f"{self.libro.titulo} prestado a {self.nombre_prestatario}"
+
+    # Preguntas guía respondidas:
     # ¿Por qué usamos CASCADE aquí y PROTECT en Libro→Autor?
-    # En Prestamo, usamos CASCADE para que si un libro es eliminado, todos los préstamos asociados a ese libro también se eliminen automáticamente,
-    # lo que mantiene la integridad de los datos. En cambio, en Libro→Autor, usamos PROTECT para evitar que se elimine un autor si tiene libros asociados, 
-    # ya que perderíamos información valiosa sobre esos libros.
-
-
-    # ¿Qué valor por defecto tendría sentido para fecha_prestamo?
-    # Tip: podés usar default=timezone.now si querés fecha automática,
-    #      o dejarlo sin default para que el test lo defina explícitamente.
-
-    
-def prestamos_activos(self) -> int:
-        """
-        Retorna la cantidad de préstamos activos (fecha_devolucion IS NULL).
-
-        Un préstamo es "activo" cuando no se ha registrado devolución.
-        """
-        # TODO: implementar con ORM usando filter sobre los préstamos relacionados
-        # Pista: self.prestamo_set.filter(fecha_devolucion__isnull=True).count()
-        #        (o el related_name que hayas definido en Prestamo.libro)
-        raise NotImplementedError
-
-    def disponibles(self) -> int:
-        """
-        Retorna cuántas copias están disponibles:
-        cantidad_total - prestamos_activos()
-        """
-        # TODO: implementar
-        raise NotImplementedError
-
-    def tiene_disponibles(self) -> bool:
-        """Retorna True si hay al menos una copia disponible."""
-        # TODO: implementar
-        raise NotImplementedError
+    # Usamos CASCADE en Prestamo porque si el libro se elimina, el registro del préstamo pierde su razón de ser. 
+    # En cambio, usamos PROTECT en Libro→Autor para no perder los libros si se borra accidentalmente al autor.
