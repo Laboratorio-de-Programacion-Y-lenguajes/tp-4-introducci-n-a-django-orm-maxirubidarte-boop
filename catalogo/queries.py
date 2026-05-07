@@ -71,5 +71,6 @@ def top_n_libros_mas_prestados(n: int):
         Libro.objects.annotate(total_prestamos=Count("prestamo"))
                      .order_by("-total_prestamos")[:n]
     """
-    # TODO: implementar con annotate + order_by + slicing
-    raise NotImplementedError
+
+    return Libro.objects.annotate(total_prestamos=Count("prestamo")).order_by("-total_prestamos")[:n]
+  
