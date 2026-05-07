@@ -28,23 +28,8 @@ def libros_por_categoria(nombre_categoria: str):
 def autores_con_mas_de_n_libros(n: int):
     """
     Devuelve un QuerySet de Autores que tienen más de n libros en el catálogo.
-
-    Args:
-        n: umbral (se devuelven autores con cantidad > n)
-
-    Returns:
-        QuerySet[Autor]
-
-    Ejemplo de uso:
-        autores = autores_con_mas_de_n_libros(1)
-        # devuelve autores con 2 o más libros
     """
-    # TODO: implementar con annotate + filter
-    # Pista 1: usá annotate para agregar una columna con la cantidad de libros
-    #   Autor.objects.annotate(cantidad_libros=Count("libro"))
-    # Pista 2: luego filtrá
-    #   .filter(cantidad_libros__gt=n)
-    raise NotImplementedError
+    return Autor.objects.annotate(cantidad_libros=Count("libro")).filter(cantidad_libros__gt=n)
 
 
 def libros_sin_disponibilidad():
