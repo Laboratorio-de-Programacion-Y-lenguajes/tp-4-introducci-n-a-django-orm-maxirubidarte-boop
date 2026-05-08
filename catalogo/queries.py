@@ -4,6 +4,7 @@ from django.db.models import Count, Q
 
 from .models import Autor, Libro
 
+from django.db.models import Count, Q, F
 
 def libros_por_categoria(nombre_categoria: str):
     """
