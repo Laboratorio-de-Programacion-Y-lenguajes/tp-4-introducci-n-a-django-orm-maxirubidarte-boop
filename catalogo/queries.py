@@ -4,6 +4,7 @@ from django.db.models import Count, Q
 
 from .models import Autor, Libro
 
+from django.db.models import Count, Q, F
 
 def libros_por_categoria(nombre_categoria: str):
     """
@@ -20,32 +21,16 @@ def libros_por_categoria(nombre_categoria: str):
         for libro in libros:
             print(libro.titulo)
     """
-    # TODO: implementar la consulta ORM
-    # Pista: usá filter con la relación M2M
-    #   Libro.objects.filter(categorias__nombre=nombre_categoria)
-    raise NotImplementedError
+    # Filtramos los libros buscando en el campo 'nombre' del modelo 'Categoria' relacionado
+    return Libro.objects.filter(categorias__nombre=nombre_categoria)
+   
 
 
 def autores_con_mas_de_n_libros(n: int):
     """
     Devuelve un QuerySet de Autores que tienen más de n libros en el catálogo.
-
-    Args:
-        n: umbral (se devuelven autores con cantidad > n)
-
-    Returns:
-        QuerySet[Autor]
-
-    Ejemplo de uso:
-        autores = autores_con_mas_de_n_libros(1)
-        # devuelve autores con 2 o más libros
     """
-    # TODO: implementar con annotate + filter
-    # Pista 1: usá annotate para agregar una columna con la cantidad de libros
-    #   Autor.objects.annotate(cantidad_libros=Count("libro"))
-    # Pista 2: luego filtrá
-    #   .filter(cantidad_libros__gt=n)
-    raise NotImplementedError
+    return Autor.objects.annotate(cantidad_libros=Count("libro")).filter(cantidad_libros__gt=n)
 
 
 def libros_sin_disponibilidad():
@@ -64,8 +49,13 @@ def libros_sin_disponibilidad():
             activos=Count("prestamo", filter=Q(prestamo__fecha_devolucion__isnull=True))
         ).filter(activos=models.F("cantidad_total"))
     """
-    # TODO: implementar con annotate + F expression + filter
-    raise NotImplementedError
+
+    # 1. Contamos los préstamos que no tienen fecha de devolución (están activos).
+    # 2. F() para comparar ese conteo contra la columna 'cantidad_total'.
+    return Libro.objects.annotate(
+        activos=Count("prestamo", filter=Q(prestamo__fecha_devolucion__isnull=True))
+    ).filter(activos=F("cantidad_total"))
+
 
 
 def top_n_libros_mas_prestados(n: int):
@@ -82,5 +72,6 @@ def top_n_libros_mas_prestados(n: int):
         Libro.objects.annotate(total_prestamos=Count("prestamo"))
                      .order_by("-total_prestamos")[:n]
     """
-    # TODO: implementar con annotate + order_by + slicing
-    raise NotImplementedError
+
+    return Libro.objects.annotate(total_prestamos=Count("prestamo")).order_by("-total_prestamos")[:n]
+  
